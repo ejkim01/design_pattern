@@ -33,7 +33,7 @@ public:
 	}	
 };
 
-// Adapter class
+// Adapter class which simulates the cParser
 class Adapter: public Iparser {
 public:
 	IbetterParser *bParserPtr;
