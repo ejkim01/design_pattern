@@ -5,6 +5,55 @@
 #include <iostream>
 #include <memory>
 
+using namespace std;
+
+// cParser Interface
+class Iparser {
+public:
+	void virtual parser()=0;
+};
+// Concrete class
+class cParser: public Iparser {
+public:
+	void parser() override {
+		cout << "cParser::parser()" << endl;
+	}	
+};
+
+// Interface for Adaptee
+class IbetterParser {
+public:
+	void virtual bParser()=0;
+};
+// Concrete class Adaptee
+class betterParser: public IbetterParser {
+public:
+	void bParser() override {
+		cout << "betterParser::bParser()" << endl;
+	}	
+};
+
+// Adapter class
+class Adapter: public Iparser {
+public:
+	IbetterParser *bParserPtr;
+	Adapter(IbetterParser *obj) {
+		bParserPtr = obj;
+	}
+	void parser() {
+		bParserPtr->bParser();
+	}
+};
+
+int main() {
+	betterParser *betterParserPtr = new betterParser;
+	Iparser *adapter = new Adapter(betterParserPtr);
+	adapter->parser();
+
+    return 0;
+}
+
+#if 0
 class Dog {	// Abstract Target
 public:
 	virtual ~Dog() = default;
@@ -58,3 +107,4 @@ int main() {
 	dogNature.carryOutNature(adaptedCat);	// So now catFemale, in the form of adaptedCat, participates in the dogNature!
 	// Note that catFemale is carrying out her own type of nature in dogNature though.
 }
+#endif
