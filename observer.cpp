@@ -1,90 +1,126 @@
 /*
-    The Observer Pattern defines a one-to-many dependency between objects so that when one object changes state, 
-    all its dependents are notified and updated automatically.
+    Observer Pattern's intent is to define a one-to-many dependency between objects so that 
+    when one object changes state, all its dependents are notified and updated automatically.
 
-    Problem
-    In one place or many places in the application we need to be aware about a system event or an application state change. 
-    We'd like to have a standard way of subscribing to listening for system events and a standard way of notifying 
-    the interested parties. The notification should be automated after an interested party subscribed to the system event 
-    or application state change. There also should be a way to unsubscribe.
-    Forces
-    Observers and observables probably should be represented by objects. The observer objects will be notified 
-    by the observable objects.
-    Solution
-    After subscribing the listening objects will be notified by a way of method call.
+    The subject and observers define the one-to-many relationship. The observers are dependent on 
+    the subject such that when the subject's state changes, the observers get notified. 
+    Depending on the notification, the observers may also be updated with new values.
 */
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
-class Subject {
-    // 1. "independent" functionality
-    vector < class Observer * > views; // 3. Coupled only to "interface"
-    int value;
-  public:
-    void attach(Observer *obs) {
-        views.push_back(obs);
-    }
-    void setVal(int val) {
-        value = val;
-        notify();
-    }
-    int getVal() {
-        return value;
-    }
-    void notify();
+class Subject; 
+
+class Observer 
+{ 
+public:
+    virtual ~Observer() = default;
+    virtual void Update(Subject&) = 0;
 };
 
-class Observer {
-    // 2. "dependent" functionality
-    Subject *model;
-    int denom;
-  public:
-    Observer(Subject *mod, int div) {
-        model = mod;
-        denom = div;
-        // 4. Observers register themselves with the Subject
-        model->attach(this);
+class Subject 
+{ 
+public: 
+    virtual ~Subject() = default;
+    void Attach(Observer& o) { observers.push_back(&o); }
+    void Detach(Observer& o)
+    {
+        observers.erase(std::remove(observers.begin(), observers.end(), &o));
     }
-    virtual void update() = 0;
-  protected:
-    Subject *getSubject() {
-        return model;
+    void Notify()
+    {
+        for (auto* o : observers) {
+            o->Update(*this);
+        }
     }
-    int getDivisor() {
-        return denom;
-    }
+private:
+    std::vector<Observer*> observers; 
 };
 
-void Subject::notify() {
-  // 5. Publisher broadcasts
-  for (int i = 0; i < views.size(); i++)
-    views[i]->update();
-}
+class ClockTimer : public Subject 
+{ 
+public:
 
-class DivObserver: public Observer {
-  public:
-    DivObserver(Subject *mod, int div): Observer(mod, div){}
-    void update() {
-        // 6. "Pull" information of interest
-        int v = getSubject()->getVal(), d = getDivisor();
-        cout << v << " div " << d << " is " << v / d << '\n';
+    void SetTime(int hour, int minute, int second)
+    {
+        this->hour = hour; 
+        this->minute = minute;
+        this->second = second;
+
+        Notify(); 
     }
+
+    int GetHour() const { return hour; }
+    int GetMinute() const { return minute; }
+    int GetSecond() const { return second; }
+
+private: 
+    int hour;
+    int minute;
+    int second;
+}; 
+
+class DigitalClock: public Observer 
+{ 
+public: 
+    explicit DigitalClock(ClockTimer& s) : subject(s) { subject.Attach(*this); }
+    ~DigitalClock() { subject.Detach(*this); }
+    void Update(Subject& theChangedSubject) override
+    {
+        if (&theChangedSubject == &subject) {
+            Draw();
+        }
+    }
+
+    void Draw()
+    {
+        int hour = subject.GetHour(); 
+        int minute = subject.GetMinute(); 
+        int second = subject.GetSecond(); 
+
+        std::cout << "Digital time is " << hour << ":" 
+                  << minute << ":" 
+                  << second << std::endl;           
+    }
+
+private:
+    ClockTimer& subject;
 };
 
-class ModObserver: public Observer {
-  public:
-    ModObserver(Subject *mod, int div): Observer(mod, div){}
-    void update() {
-        int v = getSubject()->getVal(), d = getDivisor();
-        cout << v << " mod " << d << " is " << v % d << '\n';
+class AnalogClock: public Observer 
+{ 
+public: 
+    explicit AnalogClock(ClockTimer& s) : subject(s) { subject.Attach(*this); }
+    ~AnalogClock() { subject.Detach(*this); }
+    void Update(Subject& theChangedSubject) override
+    {
+        if (&theChangedSubject == &subject) {
+            Draw();
+        }
     }
+    void Draw()
+    {
+        int hour = subject.GetHour(); 
+        int minute = subject.GetMinute(); 
+        int second = subject.GetSecond(); 
+
+        std::cout << "Analog time is " << hour << ":" 
+                  << minute << ":" 
+                  << second << std::endl; 
+    }
+private:
+    ClockTimer& subject;
 };
 
-int main() {
-  Subject subj;
-  DivObserver divObs1(&subj, 4); // 7. Client configures the number and
-  DivObserver divObs2(&subj, 3); //    type of Observers
-  ModObserver modObs3(&subj, 3);
-  subj.setVal(14);
+
+int main()
+{ 
+    ClockTimer timer; 
+
+    DigitalClock digitalClock(timer); 
+    AnalogClock analogClock(timer); 
+
+    timer.SetTime(14, 41, 36);
 }
