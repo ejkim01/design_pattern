@@ -1,10 +1,12 @@
 /*
-    Observer Pattern's intent is to define a one-to-many dependency between objects so that 
-    when one object changes state, all its dependents are notified and updated automatically.
+    Observer pattern is used when there is one-to-many relationship between objects 
+    such as if one object is modified, its depenedent objects are to be notified automatically. 
+    Observer pattern falls under behavioral pattern category.
 
-    The subject and observers define the one-to-many relationship. The observers are dependent on 
-    the subject such that when the subject's state changes, the observers get notified. 
-    Depending on the notification, the observers may also be updated with new values.
+    Observer pattern uses three actor classes. 
+    Subject, Observer and Client. Subject is an object having methods to attach and detach observers 
+    to a client object. We have created an abstract class Observer and a concrete class Subject 
+    that is extending class Observer.
 */
 
 #include <iostream>
@@ -15,20 +17,31 @@ class Subject;
 
 class Observer 
 { 
+protected:
+    Subject* subject;
 public:
     virtual ~Observer() = default;
-    virtual void Update(Subject&) = 0;
+    virtual void Update() = 0;
 };
 
 class Subject 
 { 
 public: 
     virtual ~Subject() = default;
-    void Attach(Observer& o) { observers.push_back(&o); }
-    void Detach(Observer& o)
-    {
-        observers.erase(std::remove(observers.begin(), observers.end(), &o));
+
+    int getState() {
+        return state;
     }
+
+    void setState(int state) {
+        this->state = state;
+        Notify();
+    }
+    void Attach(Observer *o) { observers.push_back(o); }
+    //void Detach(Observer& o)
+    //{
+    //    observers.erase(std::remove(observers.begin(), observers.end(), &o));
+    //}
     void Notify()
     {
         for (auto* o : observers) {
@@ -36,82 +49,20 @@ public:
         }
     }
 private:
-    std::vector<Observer*> observers; 
+    std::vector<Observer *> observers; 
+    int state;
 };
 
-class ClockTimer : public Subject 
-{ 
+class BinaryObserver: public Observer {
 public:
-
-    void SetTime(int hour, int minute, int second)
-    {
-        this->hour = hour; 
-        this->minute = minute;
-        this->second = second;
-
-        Notify(); 
+    BinaryObserver(Subject *subject) {
+        this->subject = subject;
+        this->subject->Attach(this);
     }
 
-    int GetHour() const { return hour; }
-    int GetMinute() const { return minute; }
-    int GetSecond() const { return second; }
-
-private: 
-    int hour;
-    int minute;
-    int second;
-}; 
-
-class DigitalClock: public Observer 
-{ 
-public: 
-    explicit DigitalClock(ClockTimer& s) : subject(s) { subject.Attach(*this); }
-    ~DigitalClock() { subject.Detach(*this); }
-    void Update(Subject& theChangedSubject) override
-    {
-        if (&theChangedSubject == &subject) {
-            Draw();
-        }
+    void Update() {
+        cout << "Binary string: " << subject->getState() << endl;
     }
-
-    void Draw()
-    {
-        int hour = subject.GetHour(); 
-        int minute = subject.GetMinute(); 
-        int second = subject.GetSecond(); 
-
-        std::cout << "Digital time is " << hour << ":" 
-                  << minute << ":" 
-                  << second << std::endl;           
-    }
-
-private:
-    ClockTimer& subject;
-};
-
-class AnalogClock: public Observer 
-{ 
-public: 
-    explicit AnalogClock(ClockTimer& s) : subject(s) { subject.Attach(*this); }
-    ~AnalogClock() { subject.Detach(*this); }
-    void Update(Subject& theChangedSubject) override
-    {
-        if (&theChangedSubject == &subject) {
-            Draw();
-        }
-    }
-    void Draw()
-    {
-        int hour = subject.GetHour(); 
-        int minute = subject.GetMinute(); 
-        int second = subject.GetSecond(); 
-
-        std::cout << "Analog time is " << hour << ":" 
-                  << minute << ":" 
-                  << second << std::endl; 
-    }
-private:
-    ClockTimer& subject;
 };
 
 
