@@ -13,21 +13,21 @@
 #include <vector>
 using namespace std;
 
-class Subject; 
+class NewAgency; 
 
 class Observer 
 { 
 protected:
-    Subject* subject;
+    NewAgency* subject;
 public:
     virtual ~Observer() = default;
     virtual void Update() = 0;
 };
 
-class Subject 
+class NewAgency // Subject
 { 
 public: 
-    virtual ~Subject() = default;
+    virtual ~NewAgency() = default;
 
     int getState() {
         return state;
@@ -45,7 +45,7 @@ public:
     void Notify()
     {
         for (auto* o : observers) {
-            o->Update(*this);
+            o->Update();
         }
     }
 private:
@@ -53,25 +53,35 @@ private:
     int state;
 };
 
-class BinaryObserver: public Observer {
+class CnnNews: public Observer {
 public:
-    BinaryObserver(Subject *subject) {
+    CnnNews(NewAgency *subject) {
         this->subject = subject;
         this->subject->Attach(this);
     }
 
     void Update() {
-        cout << "Binary string: " << subject->getState() << endl;
+        cout << "CnnNews is notified: " << subject->getState() << endl;
     }
 };
 
+class FoxNews: public Observer {
+public:
+    FoxNews(NewAgency *subject) {
+        this->subject = subject;
+        this->subject->Attach(this);
+    }
+
+    void Update() {
+        cout << "FoxNews is notified: " << subject->getState() << endl;
+    }
+};
 
 int main()
 { 
-    ClockTimer timer; 
+    NewAgency *s = new NewAgency();
+    CnnNews bn(s);
+    FoxNews fn(s);
 
-    DigitalClock digitalClock(timer); 
-    AnalogClock analogClock(timer); 
-
-    timer.SetTime(14, 41, 36);
+    s->setState(15);
 }
