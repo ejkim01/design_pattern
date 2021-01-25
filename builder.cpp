@@ -10,6 +10,18 @@
 		the object is available to the client. Builder Pattern lets us defer the construction of the object 
 		until all the options for creation have been specified.
 */
+
+/*
+	different kinds of foods are made by Factory pattern 
+	but the different variants(flavors) of a particular food are made by Builder pattern.
+
+	Different kinds of foods
+	Pizza, Burger, Pasta
+
+	Variants of Pizza
+	Only Cheese, Cheese+Tomato+Capsicum, Cheese+Tomato etc.
+*/
+
 #include <string>
 #include <iostream>
 #include <memory>
